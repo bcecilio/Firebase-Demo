@@ -72,6 +72,7 @@
             <connections>
                 <outlet property="dateLabel" destination="R4I-wJ-JEa" id="8cv-Lr-XOE"/>
                 <outlet property="imageView" destination="WLL-7e-Jfp" id="sVx-nM-3k7"/>
+                <outlet property="itemImageView" destination="WLL-7e-Jfp" id="wMG-Q1-Ga3"/>
                 <outlet property="itemLabel" destination="O0B-Qw-bHs" id="KDh-Rg-szd"/>
                 <outlet property="priceLabel" destination="UDs-Vt-VGy" id="jBQ-S6-BdV"/>
                 <outlet property="sellerName" destination="tGE-WF-fpm" id="cGK-r4-yql"/>

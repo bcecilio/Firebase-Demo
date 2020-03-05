@@ -16,6 +16,7 @@ struct Item {
     let sellerName: String
     let sellerId: String
     let categoryName: String
+    let imageURL: String
 }
 
 extension Item {
@@ -27,5 +28,6 @@ extension Item {
         self.sellerName = dictionary["sellerName"] as? String ?? "no sellerName"
         self.sellerId = dictionary["sellerId"] as? String ?? "no sellerId"
         self.categoryName = dictionary["categoryName"] as? String ?? "no categoryName"
+        self.imageURL = dictionary["imageURL"] as? String ?? "no imageURL"
     }
 }
