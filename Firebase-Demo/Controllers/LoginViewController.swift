@@ -51,8 +51,9 @@ class LoginViewController: UIViewController {
                     }
                 case .success(let data):
                     DispatchQueue.main.async {
-                        self?.errorLabel.text = "Welcome Back! \(data.user.displayName ?? "")"
-                        self?.errorLabel.textColor = .systemGreen
+//                        self?.errorLabel.text = "Welcome Back! \(data.user.displayName ?? "")"
+//                        self?.errorLabel.textColor = .systemGreen
+                        self?.navigateToMainView()
                     }
                 }
             }
@@ -66,12 +67,17 @@ class LoginViewController: UIViewController {
                     }
                 case .success(let newUser):
                     DispatchQueue.main.async {
-                        self?.errorLabel.text = "Welcome \(newUser.user.displayName ?? "")!"
-                        self?.errorLabel.textColor = .systemGreen
+//                        self?.errorLabel.text = "Welcome \(newUser.user.displayName ?? "")!"
+//                        self?.errorLabel.textColor = .systemGreen
+                        self?.navigateToMainView()
                     }
                 }
             }
         }
+    }
+    
+    private func navigateToMainView() {
+        UIViewController.showViewController(storyboardName: "MainView", viewControllerId: "MainTabBarController")
     }
     
     private func clearErrorLabel() {
