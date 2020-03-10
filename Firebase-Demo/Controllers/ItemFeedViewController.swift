@@ -8,12 +8,14 @@
 
 import UIKit
 import FirebaseFirestore
+import FirebaseAuth
 
 class ItemFeedViewController: UIViewController {
     
     @IBOutlet weak var tableView: UITableView!
     
     private var listener: ListenerRegistration?
+    private var database = DatabaseService()
     
     private var items = [Item]() {
         didSet {
@@ -62,6 +64,32 @@ extension ItemFeedViewController: UITableViewDataSource, UITableViewDelegate {
         let itemCell = items[indexPath.row]
         cell.configureCell(for: itemCell)
         return cell
+    }
+    
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete {
+            // perform deletion on item
+            database.deleteItem(item: items[indexPath.row]) { [weak self] (result) in
+                switch result {
+                case.failure(let error):
+                    DispatchQueue.main.async {
+                        self?.showAlert(title: "Error Deleting Item", message: "\(error.localizedDescription)")
+                    }
+                case .success:
+                    print("deleted succesfully")
+                }
+            }
+        }
+    }
+    
+    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+        let item = items[indexPath.row]
+        guard let user = Auth.auth().currentUser else {return false}
+        
+        if item.sellerId != user.uid {
+            return false
+        }
+        return true
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {

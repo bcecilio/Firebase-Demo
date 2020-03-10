@@ -13,6 +13,10 @@ import FirebaseAuth
 class DatabaseService {
     
     static let itemsCollection = "items"
+    static let usersCollection = "users"
+    static let commentsCollection = "comments" // sub collection on an item document
+    
+    // collection -> document -> collection -> document -> ....
     
     // reference to the firebase fire store database
     private let database = Firestore.firestore()
@@ -31,6 +35,43 @@ class DatabaseService {
                 completion(.failure(error))
             } else {
                 completion(.success(document.documentID))
+            }
+        }
+    }
+    
+    public func createDatabaseUser(authDataResult: AuthDataResult, completion: @escaping(Result<Bool, Error>) -> ()) {
+        
+        guard let email = authDataResult.user.email else {
+            return
+        }
+        
+        database.collection(DatabaseService.usersCollection).document(authDataResult.user.uid).setData(["email" : email, "createdDate": Timestamp(date: Date()), "userId": authDataResult.user.uid]) { (error) in
+            
+            if let error = error {
+                completion(.failure(error))
+            } else {
+                completion(.success(true))
+            }
+        }
+    }
+    
+    public func updateDatabaseUser(displayName: String, imageUrl: String, completion: @escaping (Result<Bool, Error>) -> ()) {
+        guard let user = Auth.auth().currentUser else {return}
+        database.collection(DatabaseService.usersCollection).document(user.uid).updateData(["imageUrl" : imageUrl, "displayName": displayName]) { (error) in
+            if let error = error {
+                completion(.failure(error))
+            } else {
+                completion(.success(true))
+            }
+        }
+    }
+    
+    public func deleteItem(item: Item, completion: @escaping (Result<Bool,Error>) -> ()) {
+        database.collection(DatabaseService.itemsCollection).document(item.itemId).delete { (error) in
+            if let error = error {
+                completion(.failure(error))
+            } else {
+                completion(.success(true))
             }
         }
     }

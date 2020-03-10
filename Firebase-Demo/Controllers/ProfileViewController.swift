@@ -29,6 +29,7 @@ class ProfileViewController: UIViewController {
     }
     
     private let storageService = StorageService()
+    private let database = DatabaseService()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -43,6 +44,17 @@ class ProfileViewController: UIViewController {
         emailLabel.text = user.email
         displayNameTextField.text = user.displayName
         profileImage.kf.setImage(with: user.photoURL)
+    }
+    
+    private func updateDatabaseUser(displayName: String, imageUrl: String) {
+        database.updateDatabaseUser(displayName: displayName, imageUrl: imageUrl) { [weak self] (result) in
+            switch result {
+            case .failure(let error):
+                print("\(error.localizedDescription)")
+            case .success:
+                print("successfully updated user")
+            }
+        }
     }
     
     @IBAction func editButtonPressed(_ sender: UIButton) {
@@ -86,6 +98,8 @@ class ProfileViewController: UIViewController {
                     self?.showAlert(title: "Error", message: "Error uploading photo: \(error.localizedDescription)")
                 }
             case .success(let url):
+                self?.updateDatabaseUser(displayName: displayName, imageUrl: url.absoluteString)
+                
                 let request = Auth.auth().currentUser?.createProfileChangeRequest()
                 request?.photoURL = url
                 request?.displayName = displayName
