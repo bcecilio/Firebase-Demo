@@ -159,16 +159,31 @@ class ItemDetailController: UIViewController {
     
     @IBAction func likeButtonPressed(_ sender: UIBarButtonItem) {
         
-        database.addToFavorites(item: item) { [weak self] (result) in
-            switch result {
-            case .failure(let error):
-                DispatchQueue.main.async {
-                    self?.showAlert(title: "Error Saving Item", message: "\(error.localizedDescription)")
+        if isFavorite { // remove from favorites
+            database.removeFromFavorites(item: item) { [weak self] (result) in
+                switch result {
+                case .failure(let error):
+                    DispatchQueue.main.async {
+                        self?.showAlert(title: "Error Deleting Item", message: "\(error.localizedDescription)")
+                    }
+                case .success:
+                    DispatchQueue.main.async {
+                        self?.showAlert(title: "Item Removed", message: nil)
+                        self?.isFavorite = false
+                    }
                 }
-            case .success:
-                DispatchQueue.main.async {
+            }
+        } else { // add to favorites
+            database.addToFavorites(item: item) { [weak self] (result) in
+                switch result {
+                case .failure(let error):
+                    DispatchQueue.main.async {
+                        self?.showAlert(title: "Error Saving Item", message: "\(error.localizedDescription)")
+                    }
+                case .success:
                     DispatchQueue.main.async {
                         self?.showAlert(title: "Saved Item", message: nil)
+                        self?.isFavorite = true
                     }
                 }
             }

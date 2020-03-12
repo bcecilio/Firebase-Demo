@@ -10,11 +10,17 @@ import UIKit
 import FirebaseAuth
 import Kingfisher
 
+enum ViewState {
+    case items
+    case favorites
+}
+
 class ProfileViewController: UIViewController {
     
     @IBOutlet weak var displayNameTextField: UITextField!
     @IBOutlet weak var emailLabel: UILabel!
     @IBOutlet weak var profileImage: UIImageView!
+    @IBOutlet weak var tableView: UITableView!
     
     private lazy var imagePickerController: UIImagePickerController = {
         let ip = UIImagePickerController()
@@ -30,11 +36,47 @@ class ProfileViewController: UIViewController {
     
     private let storageService = StorageService()
     private let database = DatabaseService()
+    private var viewState: ViewState = .items {
+        didSet {
+            tableView.reloadData()
+        }
+    }
+    
+    private var favorites = [String]() {
+        didSet {
+            DispatchQueue.main.async {
+                self.tableView.reloadData()
+            }
+        }
+    }
+    
+        private var myItems = [Item]() {
+            didSet {
+                DispatchQueue.main.async {
+                    self.tableView.reloadData()
+                }
+            }
+        }
 
     override func viewDidLoad() {
         super.viewDidLoad()
         displayNameTextField.delegate = self
+        tableView.dataSource = self
         updateUI()
+    }
+    
+    private func fetchItems() {
+        guard let user = Auth.auth().currentUser else {return}
+        database.fetchUserItems(userId: user.uid) { [weak self] (result) in
+            switch result {
+            case .failure(let error):
+                DispatchQueue.main.async {
+                    self?.showAlert(title: "Fetching Error", message: error.localizedDescription)
+                }
+            case .success(let items):
+                self?.myItems = items
+            }
+        }
     }
     
     private func updateUI() {
@@ -118,6 +160,19 @@ class ProfileViewController: UIViewController {
         }
     }
     
+    @IBAction func segmentedControlPressed(_ sender: UISegmentedControl) {
+        
+        // toggle current viewState
+        switch sender.selectedSegmentIndex {
+        case 0:
+            viewState = .items
+        case 1:
+            viewState = .favorites
+        default:
+            break
+        }
+    }
+    
     @IBAction func signOutButtonPressed(_ sender: UIButton) {
         
         do {
@@ -149,4 +204,31 @@ extension ProfileViewController: UIImagePickerControllerDelegate, UINavigationCo
         selectedImage = image
         dismiss(animated: true)
     }
+}
+
+extension ProfileViewController: UITableViewDataSource {
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        if viewState == .items {
+            return myItems.count
+        } else {
+            return favorites.count
+        }
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: "itemCell", for: indexPath) as? ItemCell else {
+            fatalError("could not downcast ItemCell")
+        }
+        if viewState == .items {
+            let item = myItems[indexPath.row]
+            cell.configureCell(for: item)
+        } else {
+//            let favorite = favorites[indexPath.row]
+//            cell.configureCell(for: favorite)
+        }
+        return cell
+    }
+    
+    
 }
