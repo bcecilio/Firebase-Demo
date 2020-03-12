@@ -111,4 +111,24 @@ class DatabaseService {
             }
         }
     }
+    
+    public func isItemInFavorites(item: Item, completion: @escaping (Result<Bool, Error>) -> ()) {
+        guard let user = Auth.auth().currentUser else {return}
+        
+        // in firebase we use the "where" keyword to query a collection for a query collection (query = search)
+        // addSnapShotListener - continues to listen for modifications to a collection
+        // getDocument - fetches documents ONLY once
+        database.collection(DatabaseService.usersCollection).document(user.uid).collection(DatabaseService.favoritesCollection).whereField("itemId", isEqualTo: item.itemId).getDocuments { (snapshot, error) in
+            if let error = error {
+                completion(.failure(error))
+            } else if let snapshot = snapshot {
+                let count = snapshot.documents.count
+                if count > 0 {
+                    completion(.success(true))
+                } else {
+                    completion(.success(false))
+                }
+            }
+        }
+    }
 }
