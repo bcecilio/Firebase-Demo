@@ -15,6 +15,7 @@ class DatabaseService {
     static let itemsCollection = "items"
     static let usersCollection = "users"
     static let commentsCollection = "comments" // sub collection on an item document
+    static let favoritesCollection = "favorites" // sub collection on user document
     
     // collection -> document -> collection -> document -> ....
     
@@ -68,6 +69,29 @@ class DatabaseService {
     
     public func deleteItem(item: Item, completion: @escaping (Result<Bool,Error>) -> ()) {
         database.collection(DatabaseService.itemsCollection).document(item.itemId).delete { (error) in
+            if let error = error {
+                completion(.failure(error))
+            } else {
+                completion(.success(true))
+            }
+        }
+    }
+    
+    public func postComment(item: Item, comment: String, completion: @escaping (Result<Bool, Error>) -> ()) {
+        guard let user = Auth.auth().currentUser, let displayName = user.displayName else {return}
+        let docRef = database.collection(DatabaseService.itemsCollection).document(item.itemId).collection(DatabaseService.commentsCollection).document()
+        database.collection(DatabaseService.itemsCollection).document(item.itemId).collection(DatabaseService.commentsCollection).document(docRef.documentID).setData(["text": comment, "commentDate": Timestamp(date: Date()), "itemName": item.itemName, "itemId": item.itemId, "sellerName": item.sellerName, "commentBy": displayName]) { (error) in
+            if let error = error {
+                completion(.failure(error))
+            } else {
+                completion(.success(true))
+            }
+        }
+    }
+    
+    public func addToFavorites(item: Item, completion: @escaping (Result<Bool, Error>) -> ()) {
+        guard let user = Auth.auth().currentUser else {return}
+        database.collection(DatabaseService.usersCollection).document(user.uid).collection(DatabaseService.favoritesCollection).document(item.itemId).setData(["itemName":item.itemName, "price":item.price, "imageURL": item.imageURL, "favoritedDate": Timestamp(date: Date()), "itemId": item.itemId, "sellerName": item.sellerName, "sellerId":item.sellerId]) { (error) in
             if let error = error {
                 completion(.failure(error))
             } else {
