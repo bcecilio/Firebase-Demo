@@ -10,7 +10,7 @@ import UIKit
 import FirebaseFirestore
 
 class ItemDetailController: UIViewController {
-
+    
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var containerBottomConstraint: NSLayoutConstraint!
     @IBOutlet weak var commentTextField: UITextField!
@@ -38,6 +38,16 @@ class ItemDetailController: UIViewController {
         return formatter
     }()
     
+    private var isFavorite = false {
+        didSet {
+            if isFavorite {
+                navigationItem.rightBarButtonItem?.image = UIImage(systemName: "heart.fill")
+            } else {
+                navigationItem.rightBarButtonItem?.image = UIImage(systemName: "heart")
+            }
+        }
+    }
+    
     init?(coder: NSCoder, item: Item) {
         self.item = item
         super.init(coder: coder)
@@ -55,6 +65,7 @@ class ItemDetailController: UIViewController {
         commentTextField.delegate = self
         tableView.dataSource = self
         tableView.delegate = self
+        updateUI()
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -75,6 +86,23 @@ class ItemDetailController: UIViewController {
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(true)
         unregisterKeyboardNotification()
+    }
+    
+    private func updateUI() {
+        database.isItemInFavorites(item: item) { [weak self] (result) in
+            switch result {
+            case .failure(let error):
+                DispatchQueue.main.async {
+                    self?.showAlert(title: "Try again", message: error.localizedDescription)
+                }
+            case .success(let success):
+                if success { // true
+                    self?.isFavorite = true
+                } else {
+                    self?.isFavorite = false
+                }
+            }
+        }
     }
     
     @IBAction func sendButtonPressed(_ sender: UIButton) {
@@ -140,7 +168,7 @@ class ItemDetailController: UIViewController {
             case .success:
                 DispatchQueue.main.async {
                     DispatchQueue.main.async {
-                    self?.showAlert(title: "Saved Item", message: nil)
+                        self?.showAlert(title: "Saved Item", message: nil)
                     }
                 }
             }
