@@ -57,16 +57,27 @@ class ProfileViewController: UIViewController {
                 }
             }
         }
+    
+    private var refreshControl: UIRefreshControl!
 
     override func viewDidLoad() {
         super.viewDidLoad()
         displayNameTextField.delegate = self
         tableView.dataSource = self
+        tableView.delegate = self
         updateUI()
+        fetchItems()
+        tableView.register(UINib(nibName: "ItemCell", bundle: nil), forCellReuseIdentifier: "itemCell")
+        refreshControl = UIRefreshControl()
+        tableView.refreshControl = refreshControl
+        refreshControl.addTarget(self, action: #selector(fetchItems), for: .valueChanged)
     }
     
-    private func fetchItems() {
-        guard let user = Auth.auth().currentUser else {return}
+    @objc private func fetchItems() {
+        guard let user = Auth.auth().currentUser else {
+            refreshControl.endRefreshing()
+            return
+        }
         database.fetchUserItems(userId: user.uid) { [weak self] (result) in
             switch result {
             case .failure(let error):
@@ -75,6 +86,9 @@ class ProfileViewController: UIViewController {
                 }
             case .success(let items):
                 self?.myItems = items
+            }
+            DispatchQueue.main.async {
+                self?.refreshControl.endRefreshing()
             }
         }
     }
@@ -206,7 +220,7 @@ extension ProfileViewController: UIImagePickerControllerDelegate, UINavigationCo
     }
 }
 
-extension ProfileViewController: UITableViewDataSource {
+extension ProfileViewController: UITableViewDataSource, UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         if viewState == .items {
@@ -230,5 +244,7 @@ extension ProfileViewController: UITableViewDataSource {
         return cell
     }
     
-    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 140
+    }
 }
