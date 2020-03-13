@@ -41,7 +41,7 @@ class ItemFeedViewController: UIViewController {
                 }
             } else if let snapshot = snapshot { // this is the data in our firebase database
                 let items = snapshot.documents.map { Item($0.data()) }
-                self?.items = items
+                self?.items = items.sorted{$0.listedDate.seconds > $1.listedDate.seconds}
             }
         })
     }
@@ -63,6 +63,7 @@ extension ItemFeedViewController: UITableViewDataSource, UITableViewDelegate {
         }
         let itemCell = items[indexPath.row]
         cell.configureCell(for: itemCell)
+        cell.delegate = self
         return cell
     }
     
@@ -103,5 +104,15 @@ extension ItemFeedViewController: UITableViewDataSource, UITableViewDelegate {
             return ItemDetailController(coder: coder, item: item)
         }
         navigationController?.pushViewController(detailVC, animated: true)
+    }
+}
+
+extension ItemFeedViewController: ItemCellDelegate {
+    func didSelectSellerName(_ itemCell: ItemCell, item: Item) {
+        let storyboard = UIStoryboard(name: "MainView", bundle: nil)
+        let sellerItemController = storyboard.instantiateViewController(identifier: "SellerItemsController") { (coder) in
+            return SellerItemsController(coder: coder, item: item)
+        }
+        navigationController?.pushViewController(sellerItemController, animated: true)
     }
 }

@@ -7,12 +7,13 @@
 //
 
 import Foundation
+import Firebase
 
 struct Item {
     let itemName: String
     let price: Double
     let itemId: String
-    let listedDate: Date
+    let listedDate: Timestamp
     let sellerName: String
     let sellerId: String
     let categoryName: String
@@ -24,7 +25,7 @@ extension Item {
         self.itemName = dictionary["itemName"] as? String ?? "no itemName"
         self.price = dictionary["price"] as? Double ?? 0.0
         self.itemId = dictionary["itemId"] as? String ?? "no itemId"
-        self.listedDate = dictionary["listedDate"] as? Date ?? Date()
+        self.listedDate = dictionary["listedDate"] as? Timestamp ?? Timestamp(date: Date())
         self.sellerName = dictionary["sellerName"] as? String ?? "no sellerName"
         self.sellerId = dictionary["sellerId"] as? String ?? "no sellerId"
         self.categoryName = dictionary["categoryName"] as? String ?? "no categoryName"

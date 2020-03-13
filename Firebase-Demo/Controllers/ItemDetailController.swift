@@ -32,11 +32,6 @@ class ItemDetailController: UIViewController {
             }
         }
     }
-    private lazy var dateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "EEEE, MMM d, h:mm a"
-        return formatter
-    }()
     
     private var isFavorite = false {
         didSet {
@@ -206,7 +201,7 @@ extension ItemDetailController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "commentCell", for: indexPath)
         let commentsCell = comments[indexPath.row]
-        let date = dateFormatter.string(from: commentsCell.commentDate.dateValue())
+        let date = commentsCell.commentDate.dateValue().dateString()
         cell.textLabel?.text = commentsCell.text
         cell.detailTextLabel?.text = "@" + commentsCell.commentNBy + " " + date
         return cell

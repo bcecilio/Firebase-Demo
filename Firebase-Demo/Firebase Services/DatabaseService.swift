@@ -139,7 +139,7 @@ class DatabaseService {
                 completion(.failure(error))
             } else if let snapshot = snapshot {
                 let items = snapshot.documents.map {Item($0.data())}
-                completion(.success(items))
+                completion(.success(items.sorted{$0.listedDate.seconds > $1.listedDate.seconds}))
             }
         }
     }

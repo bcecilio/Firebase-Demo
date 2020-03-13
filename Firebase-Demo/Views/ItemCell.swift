@@ -9,6 +9,10 @@
 import UIKit
 import Kingfisher
 
+protocol ItemCellDelegate: AnyObject {
+    func didSelectSellerName(_ itemCell: ItemCell, item: Item)
+}
+
 class ItemCell: UITableViewCell {
     
     @IBOutlet weak var itemImageView: UIImageView!
@@ -16,6 +20,9 @@ class ItemCell: UITableViewCell {
     @IBOutlet weak var sellerNameLabel: UILabel!
     @IBOutlet weak var dateLabel: UILabel!
     @IBOutlet weak var priceLabel: UILabel!
+    
+    private var currentItem: Item!
+    weak var delegate: ItemCellDelegate?
     
     private lazy var tapGesture: UITapGestureRecognizer = {
         let gesture = UITapGestureRecognizer()
@@ -31,11 +38,13 @@ class ItemCell: UITableViewCell {
     }
     
     @objc private func handleTap(_ gesture: UITapGestureRecognizer) {
-        print("was selected")
+        print("\(currentItem.itemName) selected")
+        delegate?.didSelectSellerName(self, item: currentItem)
     }
     
     public func configureCell(for item: Item) {
-        updateUI(imageURL: item.imageURL, itemName: item.itemName, sellerName: item.sellerName, date: item.listedDate, price: item.price)
+        currentItem = item
+        updateUI(imageURL: item.imageURL, itemName: item.itemName, sellerName: item.sellerName, date: item.listedDate.dateValue(), price: item.price)
     }
     
     public func configureCell(for favorite: Favorties) {
@@ -46,7 +55,7 @@ class ItemCell: UITableViewCell {
         itemImageView.kf.setImage(with: URL(string: imageURL))
         itemLabel.text = itemName
         sellerNameLabel.text = "@\(sellerName)"
-        dateLabel.text = date.description
+        dateLabel.text = date.dateString()
         let price = String(format: "%.2f",price)
         priceLabel.text = "$\(price)"
     }
