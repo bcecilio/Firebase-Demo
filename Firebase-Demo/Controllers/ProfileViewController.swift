@@ -42,7 +42,7 @@ class ProfileViewController: UIViewController {
         }
     }
     
-    private var favorites = [String]() {
+    private var myFavorites = [Favorties]() {
         didSet {
             DispatchQueue.main.async {
                 self.tableView.reloadData()
@@ -66,11 +66,16 @@ class ProfileViewController: UIViewController {
         tableView.dataSource = self
         tableView.delegate = self
         updateUI()
-        fetchItems()
+        loadData()
         tableView.register(UINib(nibName: "ItemCell", bundle: nil), forCellReuseIdentifier: "itemCell")
         refreshControl = UIRefreshControl()
         tableView.refreshControl = refreshControl
-        refreshControl.addTarget(self, action: #selector(fetchItems), for: .valueChanged)
+        refreshControl.addTarget(self, action: #selector(loadData), for: .valueChanged)
+    }
+    
+    @objc private func loadData() {
+        fetchItems()
+        fetchFavorites()
     }
     
     @objc private func fetchItems() {
@@ -86,6 +91,22 @@ class ProfileViewController: UIViewController {
                 }
             case .success(let items):
                 self?.myItems = items
+            }
+            DispatchQueue.main.async {
+                self?.refreshControl.endRefreshing()
+            }
+        }
+    }
+    
+    @objc private func fetchFavorites() {
+        database.fetchFavorites() { [weak self] (result) in
+            switch result {
+            case .failure(let error):
+                DispatchQueue.main.async {
+                    self?.showAlert(title: "Fetching Error", message: error.localizedDescription)
+                }
+            case .success(let favorites):
+                self?.myFavorites = favorites
             }
             DispatchQueue.main.async {
                 self?.refreshControl.endRefreshing()
@@ -226,7 +247,7 @@ extension ProfileViewController: UITableViewDataSource, UITableViewDelegate {
         if viewState == .items {
             return myItems.count
         } else {
-            return favorites.count
+            return myFavorites.count
         }
     }
     
@@ -238,8 +259,8 @@ extension ProfileViewController: UITableViewDataSource, UITableViewDelegate {
             let item = myItems[indexPath.row]
             cell.configureCell(for: item)
         } else {
-//            let favorite = favorites[indexPath.row]
-//            cell.configureCell(for: favorite)
+            let favorite = myFavorites[indexPath.row]
+            cell.configureCell(for: favorite)
         }
         return cell
     }
